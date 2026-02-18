@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHospital, faUser, faUserMd, faPhone, faLock, faIdCard } from '@fortawesome/free-solid-svg-icons';
+import { faHospital, faUser, faUserMd, faPhone, faLock, faIdCard, faClinicMedical } from '@fortawesome/free-solid-svg-icons';
 import { authAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
@@ -236,6 +236,20 @@ const LoginPage = () => {
           <p className="text-white/90 font-medium mb-2">Demo Credentials</p>
           <p className="text-white/70 text-sm">Doctor: <span className="font-mono">DOC1024</span> / <span className="font-mono">password123</span></p>
           <p className="text-white/70 text-sm">Patient: Any phone number</p>
+        </div>
+
+        {/* Clinic Registration Link */}
+        <div className="mt-4 text-center">
+          <p className="text-white/80 text-sm mb-2">
+            Want to register your clinic?
+          </p>
+          <button
+            onClick={() => navigate('/register/clinic')}
+            className="btn btn-outline bg-white hover:bg-secondary text-secondary hover:text-white border-2 border-white px-6 py-2 text-sm font-semibold"
+          >
+            <FontAwesomeIcon icon={faClinicMedical} className="mr-2" />
+            Register Clinic - Start Free
+          </button>
         </div>
       </div>
     </div>

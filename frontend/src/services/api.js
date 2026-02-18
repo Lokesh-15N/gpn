@@ -84,4 +84,17 @@ export const adminAPI = {
   getHeatmap: (params) => api.get('/admin/heatmap', { params })
 };
 
+// Department APIs
+export const departmentAPI = {
+  getAllDepartments: () => api.get('/departments'),
+  getDoctorsByDepartment: (deptId) => api.get(`/departments/${deptId}/doctors`)
+};
+
+// Hospital/Clinic APIs
+export const hospitalAPI = {
+  getAll: (params) => api.get('/hospitals', { params }),
+  getById: (hospitalId) => api.get(`/hospitals/${hospitalId}`),
+  registerClinic: (data) => api.post('/hospitals/clinic/register', data)
+};
+
 export default api;

@@ -5,6 +5,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import LoginPage from './pages/LoginPage';
 import TokenDetails from './pages/TokenDetails';
 import BookToken from './pages/BookToken';
+import ClinicRegistration from './pages/ClinicRegistration';
 import { useAuthStore } from './store/authStore';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register/clinic" element={<ClinicRegistration />} />
 
         <Route
           path="/patient"
