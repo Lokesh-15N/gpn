@@ -8,6 +8,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import stripe from "stripe";
 import razorpay from 'razorpay';
 import { sendAppointmentConfirmation, sendAppointmentCancellation } from '../services/twilioSmsService.js';
+import { sendAppointmentConfirmationTelegram } from '../services/telegramService.js';
 
 // Gateway Initialize
 const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY)
@@ -141,8 +142,19 @@ const bookAppointment = async (req, res) => {
 
     try {
 
-        const { userId, docId, slotDate, slotTime } = req.body
+        const { userId, docId, slotDate, slotTime, priority, reason } = req.body
+
+        // Validate required fields
+        if (!userId || !docId || !slotDate || !slotTime) {
+            return res.json({ success: false, message: 'Missing required fields' })
+        }
+
         const docData = await doctorModel.findById(docId).select("-password")
+
+        // Check if doctor exists
+        if (!docData) {
+            return res.json({ success: false, message: 'Doctor not found' })
+        }
 
         if (!docData.available) {
             return res.json({ success: false, message: 'Doctor Not Available' })
@@ -175,7 +187,10 @@ const bookAppointment = async (req, res) => {
             amount: docData.fees,
             slotTime,
             slotDate,
-            date: Date.now()
+            date: Date.now(),
+            priority: priority || 'Medium',
+            reason: reason || 'General Consultation',
+            payment: true  // Instant payment - mark as paid immediately
         }
 
         const newAppointment = new appointmentModel(appointmentData)
@@ -184,7 +199,7 @@ const bookAppointment = async (req, res) => {
         // save new slots data in docData
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
 
-        // Send SMS confirmation to patient
+        // Send SMS confirmation to patient after successful payment
         if (userData.phone && userData.phone !== '000000000') {
             const smsResult = await sendAppointmentConfirmation(
                 userData.phone,
@@ -201,7 +216,20 @@ const bookAppointment = async (req, res) => {
             }
         }
 
-        res.json({ success: true, message: 'Appointment Booked' })
+        // Send Telegram confirmation (always sent to test device)
+        await sendAppointmentConfirmationTelegram(
+            userData.name,
+            docData.name,
+            slotDate,
+            slotTime
+        );
+
+        res.json({
+            success: true,
+            message: 'Appointment Booked & Payment Successful',
+            appointmentId: newAppointment._id,
+            priority: priority || 'Medium'
+        })
 
     } catch (error) {
         console.log(error)
@@ -268,7 +296,15 @@ const listAppointment = async (req, res) => {
         const { userId } = req.body
         const appointments = await appointmentModel.find({ userId })
 
-        res.json({ success: true, appointments })
+        // Define priority order for sorting
+        const priorityOrder = { 'Emergency': 1, 'High': 2, 'Medium': 3, 'Low': 4 };
+
+        // Sort appointments by priority (Emergency first, then High, Medium, Low)
+        const sortedAppointments = appointments.sort((a, b) => {
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+
+        res.json({ success: true, appointments: sortedAppointments })
 
     } catch (error) {
         console.log(error)

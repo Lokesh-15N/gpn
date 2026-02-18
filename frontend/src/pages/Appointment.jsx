@@ -16,6 +16,8 @@ const Appointment = () => {
     const [docSlots, setDocSlots] = useState([])
     const [slotIndex, setSlotIndex] = useState(0)
     const [slotTime, setSlotTime] = useState('')
+    const [priority, setPriority] = useState('Medium')
+    const [reason, setReason] = useState('')
 
     const navigate = useNavigate()
 
@@ -33,7 +35,7 @@ const Appointment = () => {
 
         for (let i = 0; i < 7; i++) {
 
-            // getting date with index 
+            // getting date with index
             let currentDate = new Date(today)
             currentDate.setDate(today.getDate() + i)
 
@@ -42,7 +44,7 @@ const Appointment = () => {
             endTime.setDate(today.getDate() + i)
             endTime.setHours(21, 0, 0, 0)
 
-            // setting hours 
+            // setting hours
             if (today.getDate() === currentDate.getDate()) {
                 currentDate.setHours(currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10)
                 currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0)
@@ -92,6 +94,16 @@ const Appointment = () => {
             return navigate('/login')
         }
 
+        if (!slotTime) {
+            toast.warning('Please select a time slot')
+            return
+        }
+
+        if (!reason.trim()) {
+            toast.warning('Please enter reason for appointment')
+            return
+        }
+
         const date = docSlots[slotIndex][0].datetime
 
         let day = date.getDate()
@@ -102,7 +114,14 @@ const Appointment = () => {
 
         try {
 
-            const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
+            const { data } = await axios.post(backendUrl + '/api/user/book-appointment', {
+                docId,
+                slotDate,
+                slotTime,
+                priority,
+                reason
+            }, { headers: { token } })
+
             if (data.success) {
                 toast.success(data.message)
                 getDoctosData()
@@ -177,7 +196,47 @@ const Appointment = () => {
                     ))}
                 </div>
 
-                <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-20 py-3 rounded-full my-6'>Book an appointment</button>
+                {/* Priority Selection */}
+                <div className='mt-6'>
+                    <p className='text-gray-700 font-medium mb-2'>Select Priority</p>
+                    <div className='flex gap-3 flex-wrap'>
+                        {['Low', 'Medium', 'High', 'Emergency'].map((priorityLevel) => (
+                            <button
+                                key={priorityLevel}
+                                onClick={() => setPriority(priorityLevel)}
+                                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
+                                    priority === priorityLevel
+                                        ? priorityLevel === 'Emergency'
+                                            ? 'bg-red-500 text-white'
+                                            : priorityLevel === 'High'
+                                            ? 'bg-orange-500 text-white'
+                                            : priorityLevel === 'Medium'
+                                            ? 'bg-blue-500 text-white'
+                                            : 'bg-green-500 text-white'
+                                        : 'border border-gray-300 text-gray-600 hover:border-primary'
+                                }`}
+                            >
+                                {priorityLevel}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Reason for Appointment */}
+                <div className='mt-6'>
+                    <p className='text-gray-700 font-medium mb-2'>Reason for Appointment <span className='text-red-500'>*</span></p>
+                    <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder='Describe your symptoms or reason for visit...'
+                        className='w-full max-w-md border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:border-primary'
+                        rows='3'
+                        required
+                    />
+                </div>
+
+                <button onClick={bookAppointment} className='bg-primary text-white text-sm font-light px-20 py-3 rounded-full my-6 hover:bg-primary/90 transition-all'>Book & Pay Now</button>
+                <p className='text-xs text-gray-500 mt-2'>Payment will be processed instantly upon booking</p>
             </div>
 
             {/* Listing Releated Doctors */}

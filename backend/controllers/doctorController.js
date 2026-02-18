@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 
-// API for doctor Login 
+// API for doctor Login
 const loginDoctor = async (req, res) => {
 
     try {
@@ -38,7 +38,15 @@ const appointmentsDoctor = async (req, res) => {
         const { docId } = req.body
         const appointments = await appointmentModel.find({ docId })
 
-        res.json({ success: true, appointments })
+        // Define priority order for sorting
+        const priorityOrder = { 'Emergency': 1, 'High': 2, 'Medium': 3, 'Low': 4 };
+
+        // Sort appointments by priority (Emergency first, then High, Medium, Low)
+        const sortedAppointments = appointments.sort((a, b) => {
+            return priorityOrder[a.priority] - priorityOrder[b.priority];
+        });
+
+        res.json({ success: true, appointments: sortedAppointments })
 
     } catch (error) {
         console.log(error)
@@ -58,7 +66,7 @@ const appointmentCancel = async (req, res) => {
             return res.json({ success: true, message: 'Appointment Cancelled' })
         }
 
-        res.json({ success: false, message: 'Appointment Cancelled' })
+        res.json({ success: false, message: 'Unable to cancel appointment' })
 
     } catch (error) {
         console.log(error)
@@ -79,7 +87,7 @@ const appointmentComplete = async (req, res) => {
             return res.json({ success: true, message: 'Appointment Completed' })
         }
 
-        res.json({ success: false, message: 'Appointment Cancelled' })
+        res.json({ success: false, message: 'Unable to complete appointment' })
 
     } catch (error) {
         console.log(error)

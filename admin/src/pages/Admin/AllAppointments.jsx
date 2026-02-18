@@ -21,9 +21,10 @@ const AllAppointments = () => {
       <p className='mb-3 text-lg font-medium'>All Appointments</p>
 
       <div className='bg-white border rounded text-sm max-h-[80vh] overflow-y-scroll'>
-        <div className='hidden sm:grid grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] grid-flow-col py-3 px-6 border-b'>
+        <div className='hidden sm:grid grid-cols-[0.5fr_2.5fr_1fr_1fr_2.5fr_2.5fr_1fr_1fr] grid-flow-col py-3 px-6 border-b'>
           <p>#</p>
           <p>Patient</p>
+          <p>Priority</p>
           <p>Age</p>
           <p>Date & Time</p>
           <p>Doctor</p>
@@ -31,10 +32,20 @@ const AllAppointments = () => {
           <p>Action</p>
         </div>
         {appointments.map((item, index) => (
-          <div className='flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50' key={index}>
+          <div className='flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_2.5fr_1fr_1fr_2.5fr_2.5fr_1fr_1fr] items-center text-gray-500 py-3 px-6 border-b hover:bg-gray-50' key={index}>
             <p className='max-sm:hidden'>{index+1}</p>
             <div className='flex items-center gap-2'>
               <img src={item.userData.image} className='w-8 rounded-full' alt="" /> <p>{item.userData.name}</p>
+            </div>
+            <div>
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                item.priority === 'Emergency' ? 'bg-red-100 text-red-700' :
+                item.priority === 'High' ? 'bg-orange-100 text-orange-700' :
+                item.priority === 'Medium' ? 'bg-blue-100 text-blue-700' :
+                'bg-green-100 text-green-700'
+              }`}>
+                {item.priority}
+              </span>
             </div>
             <p className='max-sm:hidden'>{calculateAge(item.userData.dob)}</p>
             <p>{slotDateFormat(item.slotDate)}, {item.slotTime}</p>

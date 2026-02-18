@@ -46,7 +46,7 @@ const MyAppointments = () => {
                 getUserAppointments()
             } else {
                 toast.error(data.message)
-            }   
+            }
 
         } catch (error) {
             console.log(error)
@@ -139,13 +139,29 @@ const MyAppointments = () => {
                             <p className=''>{item.docData.address.line1}</p>
                             <p className=''>{item.docData.address.line2}</p>
                             <p className=' mt-1'><span className='text-sm text-[#3C3C3C] font-medium'>Date & Time:</span> {slotDateFormat(item.slotDate)} |  {item.slotTime}</p>
+
+                            {/* Priority Badge */}
+                            <div className='mt-2'>
+                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                                    item.priority === 'Emergency' ? 'bg-red-100 text-red-700' :
+                                    item.priority === 'High' ? 'bg-orange-100 text-orange-700' :
+                                    item.priority === 'Medium' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-green-100 text-green-700'
+                                }`}>
+                                    Priority: {item.priority}
+                                </span>
+                            </div>
+
+                            {/* Reason */}
+                            {item.reason && (
+                                <p className='mt-2 text-xs'>
+                                    <span className='font-medium text-[#3C3C3C]'>Reason:</span> {item.reason}
+                                </p>
+                            )}
                         </div>
                         <div></div>
                         <div className='flex flex-col gap-2 justify-end text-sm text-center'>
-                            {!item.cancelled && !item.payment && !item.isCompleted && payment !== item._id && <button onClick={() => setPayment(item._id)} className='text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300'>Pay Online</button>}
-                            {!item.cancelled && !item.payment && !item.isCompleted && payment === item._id && <button onClick={() => appointmentStripe(item._id)} className='text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-gray-100 hover:text-white transition-all duration-300 flex items-center justify-center'><img className='max-w-20 max-h-5' src={assets.stripe_logo} alt="" /></button>}
-                            {!item.cancelled && !item.payment && !item.isCompleted && payment === item._id && <button onClick={() => appointmentRazorpay(item._id)} className='text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-gray-100 hover:text-white transition-all duration-300 flex items-center justify-center'><img className='max-w-20 max-h-5' src={assets.razorpay_logo} alt="" /></button>}
-                            {!item.cancelled && item.payment && !item.isCompleted && <button className='sm:min-w-48 py-2 border rounded text-[#696969]  bg-[#EAEFFF]'>Paid</button>}
+                            {!item.cancelled && item.payment && !item.isCompleted && <button className='sm:min-w-48 py-2 border rounded text-white bg-green-500'>Paid ✓</button>}
 
                             {item.isCompleted && <button className='sm:min-w-48 py-2 border border-green-500 rounded text-green-500'>Completed</button>}
 
