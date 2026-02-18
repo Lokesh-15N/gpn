@@ -7,25 +7,23 @@ import doctorModel from './models/doctorModel.js';
 
 dotenv.config();
 
-const BASE_IMAGE_URL = `http://localhost:${process.env.PORT || 4000}/images`;
-
-// Map each doctor email → their assigned photo
+// Map each doctor email → their assigned photo (served from frontend /public/images/)
 const imageMap = {
-    'dr.sarah@docslot.com':       `${BASE_IMAGE_URL}/doc1.png`,
-    'dr.priya@docslot.com':       `${BASE_IMAGE_URL}/doc2.png`,
-    'dr.rajesh@docslot.com':      `${BASE_IMAGE_URL}/doc3.png`,
-    'dr.emily@docslot.com':       `${BASE_IMAGE_URL}/doc4.png`,
-    'dr.amit@docslot.com':        `${BASE_IMAGE_URL}/doc5.png`,
-    'dr.lisa@docslot.com':        `${BASE_IMAGE_URL}/doc6.png`,
-    'dr.michael@docslot.com':     `${BASE_IMAGE_URL}/doc7.png`,
-    'dr.ananya@docslot.com':      `${BASE_IMAGE_URL}/doc8.png`,
-    'dr.david@docslot.com':       `${BASE_IMAGE_URL}/doc9.png`,
-    'dr.kavita@docslot.com':      `${BASE_IMAGE_URL}/doc10.png`,
-    'dr.robert@docslot.com':      `${BASE_IMAGE_URL}/doc11.png`,
-    'dr.sneha@docslot.com':       `${BASE_IMAGE_URL}/doc12.png`,
-    'dr.james@docslot.com':       `${BASE_IMAGE_URL}/doc13.png`,
-    'dr.meera@docslot.com':       `${BASE_IMAGE_URL}/doc14.png`,
-    'dr.christopher@docslot.com': `${BASE_IMAGE_URL}/doc15.png`,
+    'dr.sarah@docslot.com':       '/images/doc1.png',
+    'dr.priya@docslot.com':       '/images/doc2.png',
+    'dr.rajesh@docslot.com':      '/images/doc3.png',
+    'dr.emily@docslot.com':       '/images/doc4.png',
+    'dr.amit@docslot.com':        '/images/doc5.png',
+    'dr.lisa@docslot.com':        '/images/doc6.png',
+    'dr.michael@docslot.com':     '/images/doc7.png',
+    'dr.ananya@docslot.com':      '/images/doc8.png',
+    'dr.david@docslot.com':       '/images/doc9.png',
+    'dr.kavita@docslot.com':      '/images/doc10.png',
+    'dr.robert@docslot.com':      '/images/doc11.png',
+    'dr.sneha@docslot.com':       '/images/doc12.png',
+    'dr.james@docslot.com':       '/images/doc13.png',
+    'dr.meera@docslot.com':       '/images/doc14.png',
+    'dr.christopher@docslot.com': '/images/doc15.png',
 };
 
 const updateImages = async () => {

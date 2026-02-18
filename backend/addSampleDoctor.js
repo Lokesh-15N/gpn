@@ -9,9 +9,8 @@ import doctorModel from './models/doctorModel.js';
 // Load environment variables
 dotenv.config();
 
-// Doctor images served statically from backend
-const BASE_IMAGE_URL = `http://localhost:${process.env.PORT || 4000}/images`;
-const doctorImages = Array.from({ length: 15 }, (_, i) => `${BASE_IMAGE_URL}/doc${i + 1}.png`);
+// Doctor images served from frontend /public/images/
+const doctorImages = Array.from({ length: 15 }, (_, i) => `/images/doc${i + 1}.png`);
 
 // Sample doctors data (each assigned their own photo doc1–doc15)
 const sampleDoctors = [
