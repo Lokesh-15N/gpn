@@ -1,13 +1,9 @@
-# Exclude backend folder
-backend/
-
-# Exclude documentation files
-*.md
-!frontend/README.md
-
 # Node modules
 node_modules/
 package-lock.json
+
+# Exclude only node_modules in backend
+backend/node_modules/
 
 # Environment variables
 .env
