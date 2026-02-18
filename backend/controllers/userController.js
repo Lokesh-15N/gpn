@@ -7,13 +7,19 @@ import appointmentModel from "../models/appointmentModel.js";
 import { v2 as cloudinary } from 'cloudinary'
 import stripe from "stripe";
 import razorpay from 'razorpay';
+import { sendAppointmentConfirmation, sendAppointmentCancellation } from '../services/twilioSmsService.js';
 
 // Gateway Initialize
 const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY)
-const razorpayInstance = new razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
-})
+
+// Initialize Razorpay only if credentials are provided
+let razorpayInstance = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    razorpayInstance = new razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+    })
+}
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -130,7 +136,7 @@ const updateProfile = async (req, res) => {
     }
 }
 
-// API to book appointment 
+// API to book appointment
 const bookAppointment = async (req, res) => {
 
     try {
@@ -144,7 +150,7 @@ const bookAppointment = async (req, res) => {
 
         let slots_booked = docData.slots_booked
 
-        // checking for slot availablity 
+        // checking for slot availablity
         if (slots_booked[slotDate]) {
             if (slots_booked[slotDate].includes(slotTime)) {
                 return res.json({ success: false, message: 'Slot Not Available' })
@@ -178,6 +184,23 @@ const bookAppointment = async (req, res) => {
         // save new slots data in docData
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
 
+        // Send SMS confirmation to patient
+        if (userData.phone && userData.phone !== '000000000') {
+            const smsResult = await sendAppointmentConfirmation(
+                userData.phone,
+                userData.name,
+                docData.name,
+                slotDate,
+                slotTime
+            );
+
+            if (smsResult.success) {
+                console.log('✅ SMS sent to patient:', userData.phone);
+            } else {
+                console.log('⚠️ SMS failed:', smsResult.error);
+            }
+        }
+
         res.json({ success: true, message: 'Appointment Booked' })
 
     } catch (error) {
@@ -194,14 +217,14 @@ const cancelAppointment = async (req, res) => {
         const { userId, appointmentId } = req.body
         const appointmentData = await appointmentModel.findById(appointmentId)
 
-        // verify appointment user 
+        // verify appointment user
         if (appointmentData.userId !== userId) {
             return res.json({ success: false, message: 'Unauthorized action' })
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
 
-        // releasing doctor slot 
+        // releasing doctor slot
         const { docId, slotDate, slotTime } = appointmentData
 
         const doctorData = await doctorModel.findById(docId)
@@ -211,6 +234,24 @@ const cancelAppointment = async (req, res) => {
         slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
 
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
+
+        // Send SMS cancellation notification
+        const userData = appointmentData.userData;
+        if (userData.phone && userData.phone !== '000000000') {
+            const smsResult = await sendAppointmentCancellation(
+                userData.phone,
+                userData.name,
+                doctorData.name,
+                slotDate,
+                slotTime
+            );
+
+            if (smsResult.success) {
+                console.log('✅ Cancellation SMS sent to:', userData.phone);
+            } else {
+                console.log('⚠️ Cancellation SMS failed:', smsResult.error);
+            }
+        }
 
         res.json({ success: true, message: 'Appointment Cancelled' })
 
@@ -238,6 +279,9 @@ const listAppointment = async (req, res) => {
 // API to make payment of appointment using razorpay
 const paymentRazorpay = async (req, res) => {
     try {
+        if (!razorpayInstance) {
+            return res.json({ success: false, message: 'Razorpay is not configured' })
+        }
 
         const { appointmentId } = req.body
         const appointmentData = await appointmentModel.findById(appointmentId)
@@ -267,6 +311,10 @@ const paymentRazorpay = async (req, res) => {
 // API to verify payment of razorpay
 const verifyRazorpay = async (req, res) => {
     try {
+        if (!razorpayInstance) {
+            return res.json({ success: false, message: 'Razorpay is not configured' })
+        }
+
         const { razorpay_order_id } = req.body
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
 

@@ -51,6 +51,27 @@ const AdminContextProvider = (props) => {
         }
     }
 
+    // Function to delete doctor using API
+    const deleteDoctor = async (docId) => {
+        try {
+            const confirmDelete = window.confirm('Are you sure you want to delete this doctor? This will also delete all associated appointments.')
+
+            if (!confirmDelete) return
+
+            const { data } = await axios.post(backendUrl + '/api/admin/delete-doctor', { docId }, { headers: { aToken } })
+            if (data.success) {
+                toast.success(data.message)
+                getAllDoctors()
+            } else {
+                toast.error(data.message)
+            }
+
+        } catch (error) {
+            console.log(error)
+            toast.error(error.message)
+        }
+    }
+
 
     // Getting all appointment data from Database using API
     const getAllAppointments = async () => {
@@ -116,6 +137,7 @@ const AdminContextProvider = (props) => {
         doctors,
         getAllDoctors,
         changeAvailability,
+        deleteDoctor,
         appointments,
         getAllAppointments,
         getDashData,

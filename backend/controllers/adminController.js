@@ -80,12 +80,21 @@ const addDoctor = async (req, res) => {
             return res.json({ success: false, message: "Please enter a strong password" })
         }
 
+        // Check if doctor with email already exists
+        const existingDoctor = await doctorModel.findOne({ email })
+        if (existingDoctor) {
+            return res.json({ success: false, message: "Doctor with this email already exists" })
+        }
+
         // hashing user password
         const salt = await bcrypt.genSalt(10); // the more no. round the more time it will take
         const hashedPassword = await bcrypt.hash(password, salt)
 
-        // upload image to cloudinary
-        const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
+        // upload image to cloudinary with timeout
+        const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+            resource_type: "image",
+            timeout: 60000 // 60 seconds timeout
+        })
         const imageUrl = imageUpload.secure_url
 
         const doctorData = {
@@ -104,11 +113,20 @@ const addDoctor = async (req, res) => {
 
         const newDoctor = new doctorModel(doctorData)
         await newDoctor.save()
-        res.json({ success: true, message: 'Doctor Added' })
+        console.log('Doctor saved successfully:', email)
+        return res.json({ success: true, message: 'Doctor Added' })
 
     } catch (error) {
-        console.log(error)
-        res.json({ success: false, message: error.message })
+        console.log('Error in addDoctor:', error.message || error)
+        // Handle duplicate email error
+        if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+            return res.json({ success: false, message: 'Doctor with this email already exists' })
+        }
+        // Handle Cloudinary timeout or network errors
+        if (error.message && (error.message.includes('timeout') || error.message.includes('TimeoutError') || error.code === 'ECONNRESET')) {
+            return res.json({ success: false, message: 'Image upload failed due to timeout. Please try again with a smaller image.' })
+        }
+        return res.json({ success: false, message: error.message })
     }
 }
 
@@ -118,6 +136,33 @@ const allDoctors = async (req, res) => {
 
         const doctors = await doctorModel.find({}).select('-password')
         res.json({ success: true, doctors })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
+// API to delete doctor
+const deleteDoctor = async (req, res) => {
+    try {
+        const { docId } = req.body
+
+        if (!docId) {
+            return res.json({ success: false, message: 'Doctor ID is required' })
+        }
+
+        // Delete doctor from database
+        const deletedDoctor = await doctorModel.findByIdAndDelete(docId)
+
+        if (!deletedDoctor) {
+            return res.json({ success: false, message: 'Doctor not found' })
+        }
+
+        // Also delete all appointments associated with this doctor
+        await appointmentModel.deleteMany({ docId: docId })
+
+        res.json({ success: true, message: 'Doctor deleted successfully' })
 
     } catch (error) {
         console.log(error)
@@ -154,5 +199,6 @@ export {
     appointmentCancel,
     addDoctor,
     allDoctors,
+    deleteDoctor,
     adminDashboard
 }
