@@ -11,11 +11,18 @@ const TWILIO_ALPHA_SENDER = process.env.TWILIO_ALPHA_SENDER || 'DOCSlot';
 let twilioClient = null;
 
 // Initialize Twilio client
-if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
-    twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-    console.log('✅ Twilio SMS Service initialized');
+// Check if credentials are valid (not just placeholder values)
+if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && 
+    TWILIO_ACCOUNT_SID.startsWith('AC') && 
+    !TWILIO_ACCOUNT_SID.includes('your_')) {
+    try {
+        twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+        console.log('✅ Twilio SMS Service initialized');
+    } catch (err) {
+        console.log('⚠️ Twilio initialization failed. Invalid credentials.');
+    }
 } else {
-    console.log('⚠️ Twilio not configured. Add TWILIO credentials to .env');
+    console.log('⚠️ Twilio not configured. Add valid TWILIO credentials to .env');
 }
 
 /**
